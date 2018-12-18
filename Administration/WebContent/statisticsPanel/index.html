@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+ 
+<html>
+    <head>
+        <title>Statistics Panel</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">
+        <link rel="stylesheet" href="../style.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script> 
+    </head>
+    <body onload="openSocket();">
+	<div class="tab">
+		<button class="tablinks" onclick="openCity(event, 'gamestats')">Game statistics</button>
+		<button class="tablinks" onclick="openCity(event, 'playerstats')">Player statistics</button>
+		<button class="tablinks" onclick="openCity(event, 'dailystats')">Daily statistics</button>
+		<button class="tablinks" onclick="openCity(event, 'totalstats')">Total statistics</button>
+		<button class="tablinks" onclick="openCity(event, 'history')">History</button>
+		<button  onclick="window.location.href='..'">Back</button>
+	</div>
+
+	<!-- Tab content -->
+	<div id="gamestats" class="tabcontent">
+		<h3>Game statistics</h3>
+		<select id="gameSelect" onchange="send(gamestats.id)">
+			<option value="BLACKJACK">Blackjack</option>
+			<option value="ROULETTE">Roulette</option>
+			<option value="SLOTS">Slots</option>
+		</select>
+		<p id="gameprof">data</p>
+		<p>data</p>
+		<p>data</p>
+		<canvas id="gamechart" width="800" height="600"></canvas>
+	</div>
+
+	<div id="playerstats" class="tabcontent">
+		<h3>Player statistics</h3>
+		<select id="playerSelect" onchange="send(playerstats.id)">
+			<option value="BLACKJACK">Blackjack</option>
+			<option value="ROULETTE">Roulette</option>
+			<option value="SLOTS">Slots</option>
+		</select>
+		<p id="anag">data</p>
+		<p>data</p>
+		<p>data</p>
+		<canvas id="playerchart" width="800" height="600"></canvas>
+	</div>
+
+	<div id="dailystats" class="tabcontent">
+		<h3>Daily statistics</h3>
+		<p id="dayprof">data</p>
+		<p>data</p>
+		<p>data</p>
+		<canvas id="dailychart" width="800" height="600"></canvas>
+		<canvas id="dailypielosschart" width="400" height="300" style="display: inline;"></canvas>
+		<canvas id="dailypiegainchart" width="400" height="300" style="display: inline;"></canvas>
+	</div>
+	
+	<div id="totalstats" class="tabcontent">
+		<h3>Total statistics</h3>
+		<p id="totalprof">data</p>
+		<p>data</p>
+		<p>data</p>
+		<canvas id="totalchart" width="800" height="600"></canvas>
+		<canvas id="totalpielosschart" width="400" height="300" style="display: inline;"></canvas>
+		<canvas id="totalpiegainchart" width="400" height="300" style="display: inline;"></canvas>
+	</div>
+	
+	<div id="history" class="tabcontent" >
+		<h3>History</h3>
+		<p>data</p>
+		<p>data</p>
+		<p>data</p>
+		<div id="hcharts" class="inline">
+		</div>
+	</div>
+	<!-- scripts -->
+	<script type="text/javascript">
+	var action;
+	function openCity(evt, tab) {
+		  // Declare all variables
+		  var i, tabcontent, tablinks;
+
+		  // Get all elements with class="tabcontent" and hide them
+		  tabcontent = document.getElementsByClassName("tabcontent");
+		  for (i = 0; i < tabcontent.length; i++) {
+		    tabcontent[i].style.display = "none";
+		  }
+
+		  // Get all elements with class="tablinks" and remove the class "active"
+		  tablinks = document.getElementsByClassName("tablinks");
+		  for (i = 0; i < tablinks.length; i++) {
+		    tablinks[i].className = tablinks[i].className.replace(" active", "");
+		  }
+
+		  // Show the current tab, and add an "active" class to the button that opened the tab
+		  document.getElementById(tab).style.display = "block";
+		  evt.currentTarget.className += " active";
+		  action = tab;
+		  send(action);
+		}
+
+var gamechart;
+var playerchart;
+var dailychart;
+var dailypielosschart;
+var dailypiegainchart;
+var totalchart;
+var totalpielosschart;
+var totalpiegainchart;
+setInterval(refresh, 300000);  //move this
+
+function refresh(){
+	send(action);
+}
+
+function makeGameChart(values){
+var gamectx = document.getElementById("gamechart").getContext('2d');
+if(!!gamechart){
+	gamechart.destroy();
+}
+gamechart = new Chart(gamectx, {
+    type: 'bar',
+    data: {
+        labels: ["Loss", "Gain", "Minimum Bet", "Average Bet", "Sessions"],
+        datasets: [{
+            label: document.getElementById("gameSelect").options[document.getElementById("gameSelect").selectedIndex].text + ' Statistics',
+            data: values,
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.2)',
+                'rgba(54, 162, 235, 0.2)',
+                'rgba(255, 206, 86, 0.2)',
+                'rgba(75, 192, 192, 0.2)',
+                'rgba(153, 102, 255, 0.2)'
+            ],
+            borderColor: [
+                'rgba(255,99,132,1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero:true
+                }
+            }]
+        },
+        responsive: false
+    }
+});}
+function makeDailyChart(values){
+var dailyctx = document.getElementById("dailychart").getContext('2d');
+var dailypielossctx = document.getElementById("dailypielosschart").getContext('2d');
+var dailypiegainctx = document.getElementById("dailypiegainchart").getContext('2d');
+if(!!dailychart){
+	dailychart.destroy();
+}
+if(!!dailypielosschart){
+	dailypielosschart.destroy();
+}
+if(!!dailypiegainchart){
+	dailypiegainchart.destroy();
+}
+dailychart = new Chart(dailyctx, {
+    type: 'bar',
+    data: {
+        labels: ["Total Losses", "Total Gains", "BlackJack Loss", "BlackJack Gain", "Roulette Loss", "Roulette Gain","Slots Loss","Slots Gain","Sessions"],
+        datasets: [{
+            label: new Date().toLocaleDateString(),
+            data: values,
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.2)',
+                'rgba(54, 162, 235, 0.2)',
+                'rgba(255, 206, 86, 0.2)',
+                'rgba(75, 192, 192, 0.2)',
+                'rgba(153, 102, 255, 0.2)',
+                'rgba(255, 159, 64, 0.2)',
+                'rgba(255,0,255,0.2)',
+                'rgba(128,0,0,0.2)',
+                'rgba(0,0,0,0.2)'
+            ],
+            borderColor: [
+                'rgba(255,99,132,1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 159, 64, 1)',
+                'rgba(255,0,255,1)',
+                'rgba(128,0,0,1)',
+                'rgba(0,0,0,1)'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero:true
+                }
+            }]
+        },
+        responsive: false
+    }
+});
+dailypielosschart = new Chart(dailypielossctx, {
+    type: 'doughnut',
+    data: {
+        labels: ["BlackJack Loss", "Roulette Loss", "Slots Loss"],
+        datasets: [{
+            label: new Date().toLocaleDateString(),
+            data: [values[2],values[4],values[6]],
+            backgroundColor: [
+                'rgba(255, 206, 86, 0.2)',               
+                'rgba(153, 102, 255, 0.2)',             
+                'rgba(255,0,255,0.2)'
+            ],
+            borderColor: [
+                'rgba(255, 206, 86, 1)',
+                'rgba(153, 102, 255, 1)',
+                'rgba(255,0,255,1)'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: false
+    }
+});
+dailypiegainchart = new Chart(dailypiegainctx, {
+    type: 'doughnut',
+    data: {
+        labels: ["BlackJack Gain", "Roulette Gain", "Slots Gain"],
+        datasets: [{
+            label: new Date().toLocaleDateString(),
+            data: [values[3],values[5],values[7]],
+            backgroundColor: [
+                'rgba(75, 192, 192, 0.2)',
+                
+                'rgba(255, 159, 64, 0.2)',
+                
+                'rgba(128,0,0,0.2)'
+                
+            ],
+            borderColor: [
+                
+                'rgba(75, 192, 192, 1)',
+                
+                'rgba(255, 159, 64, 1)',
+               
+                'rgba(128,0,0,1)'
+                
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: false
+    }
+});
+
+}
+function makePlayerChart(values){
+var playerctx = document.getElementById("playerchart").getContext('2d');
+if(!!playerchart){
+	playerchart.destroy();
+}
+ playerchart = new Chart(playerctx, {
+    type: 'bar',
+    data: {
+        labels: ["Total losses", "Total gains", "Current Balance"],
+        datasets: [{
+            label: document.getElementById("playerSelect").options[document.getElementById("playerSelect").selectedIndex].text + ' Statistics',
+            data: values,
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.2)',
+                'rgba(54, 162, 235, 0.2)',
+                'rgba(255, 206, 86, 0.2)'
+            ],
+            borderColor: [
+                'rgba(255,99,132,1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero:true
+                }
+            }]
+        },
+        responsive: false
+    }
+});}
+function makeTotalChart(values){
+	var totalctx = document.getElementById("totalchart").getContext('2d');
+	var totalpielossctx = document.getElementById("totalpielosschart").getContext('2d');
+	var totalpiegainctx = document.getElementById("totalpiegainchart").getContext('2d');
+	if(!!totalchart){
+		totalchart.destroy();
+	}
+	if(!!totalpielosschart){
+		totalpielosschart.destroy();
+	}
+	if(!!totalpiegainchart){
+		totalpiegainchart.destroy();
+	}
+	totalchart = new Chart(totalctx, {
+	    type: 'bar',
+	    data: {
+	        labels: ["Total Losses", "Total Gains", "BlackJack Loss", "BlackJack Gain", "Roulette Loss", "Roulette Gain","Slots Loss","Slots Gain","Sessions"],
+	        datasets: [{
+	            label: "Total statistics",
+	            data: values,
+	            backgroundColor: [
+	                'rgba(255, 99, 132, 0.2)',
+	                'rgba(54, 162, 235, 0.2)',
+	                'rgba(255, 206, 86, 0.2)',
+	                'rgba(75, 192, 192, 0.2)',
+	                'rgba(153, 102, 255, 0.2)',
+	                'rgba(255, 159, 64, 0.2)',
+	                'rgba(255,0,255,0.2)',
+	                'rgba(128,0,0,0.2)',
+	                'rgba(0,0,0,0.2)'
+	            ],
+	            borderColor: [
+	                'rgba(255,99,132,1)',
+	                'rgba(54, 162, 235, 1)',
+	                'rgba(255, 206, 86, 1)',
+	                'rgba(75, 192, 192, 1)',
+	                'rgba(153, 102, 255, 1)',
+	                'rgba(255, 159, 64, 1)',
+	                'rgba(255,0,255,1)',
+	                'rgba(128,0,0,1)',
+	                'rgba(0,0,0,1)'
+	            ],
+	            borderWidth: 1
+	        }]
+	    },
+	    options: {
+	        scales: {
+	            yAxes: [{
+	                ticks: {
+	                    beginAtZero:true
+	                }
+	            }]
+	        },
+	        responsive: false
+	    }
+	});
+	totalpielosschart = new Chart(totalpielossctx, {
+	    type: 'doughnut',
+	    data: {
+	        labels: ["BlackJack Loss", "Roulette Loss", "Slots Loss"],
+	        datasets: [{
+	            label: new Date().toLocaleDateString(),
+	            data: [values[2],values[4],values[6]],
+	            backgroundColor: [
+	                'rgba(255, 206, 86, 0.2)',               
+	                'rgba(153, 102, 255, 0.2)',             
+	                'rgba(255,0,255,0.2)'
+	            ],
+	            borderColor: [
+	                'rgba(255, 206, 86, 1)',
+	                'rgba(153, 102, 255, 1)',
+	                'rgba(255,0,255,1)'
+	            ],
+	            borderWidth: 1
+	        }]
+	    },
+	    options: {
+	        responsive: false
+	    }
+	});
+	totalpiegainchart = new Chart(totalpiegainctx, {
+	    type: 'doughnut',
+	    data: {
+	        labels: ["BlackJack Gain", "Roulette Gain", "Slots Gain"],
+	        datasets: [{
+	            label: new Date().toLocaleDateString(),
+	            data: [values[3],values[5],values[7]],
+	            backgroundColor: [
+	                'rgba(75, 192, 192, 0.2)',
+	                
+	                'rgba(255, 159, 64, 0.2)',
+	                
+	                'rgba(128,0,0,0.2)'
+	                
+	            ],
+	            borderColor: [
+	                
+	                'rgba(75, 192, 192, 1)',
+	                
+	                'rgba(255, 159, 64, 1)',
+	               
+	                'rgba(128,0,0,1)'
+	                
+	            ],
+	            borderWidth: 1
+	        }]
+	    },
+	    options: {
+	        responsive: false
+	    }
+	});
+
+	}
+function makeHistoryChart(values){
+	var source = document.getElementById("hcharts");
+	source.innerHTML="";
+	for(i=0;i<10;i++){
+		var canvas = document.createElement('canvas');
+		canvas.id = "chartn"+i;
+		source.appendChild(canvas);
+		canvas.style = "display: inline; width: 250px; height: 250px;"
+		var ctx = canvas.getContext("2d");
+		var date = new Date();
+		date.setDate(date.getDate() - i); 
+		var historychart = new Chart(ctx, {
+		    type: 'bar',
+		    data: {
+		        labels: ["Losses", "Gains", "Sessions"],
+		        datasets: [{
+		            label: date.toLocaleDateString(),
+		            data: values.slice(i*3,(i*3)+3),
+		            backgroundColor: [
+		                'rgba(255, 99, 132, 0.2)',
+		                'rgba(54, 162, 235, 0.2)',
+		                'rgba(255, 206, 86, 0.2)'
+		            ],
+		            borderColor: [
+		                'rgba(255,99,132,1)',
+		                'rgba(54, 162, 235, 1)',
+		                'rgba(255, 206, 86, 1)'
+		            ],
+		            borderWidth: 1
+		        }],
+		    },
+		    options: {
+		        scales: {
+		            yAxes: [{
+		                ticks: {
+		                    beginAtZero:true
+		                }
+		            }]
+		        },
+		        responsive: false,
+		        title: {
+		            display: true,
+		            text: "Profitability: "+values[30+i]+"%"
+		        }
+		    }
+		});
+	}
+
+}
+
+       var webSocket;
+                     
+            function openSocket(){
+                // Ensures only one connection is open at a time
+                if(webSocket !== undefined && webSocket.readyState !== WebSocket.CLOSED){
+                   writeResponse("WebSocket is already opened.");
+                    return;
+                }
+
+                // Create a new instance of the websocket
+                webSocket = new WebSocket("ws://localhost:8080/Administration/adm/statpanel");                
+ 
+                webSocket.onmessage = function(event){
+                	
+                	var obj = JSON.parse(event.data);
+                	var i;
+					var values = [];
+                	//alert(obj);
+                	switch(obj[0]){
+                		case "GAMESTATS": 
+                			obj.shift();
+                			values.push(obj[0].split(" ")[0]);
+                			values.push(obj[0].split(" ")[1]);
+                			values.push(obj[1].split(" ")[0]);
+                			values.push(obj[1].split(" ")[1]);
+                			values.push(obj[2]);
+                			makeGameChart(values);
+                			document.getElementById("gameprof").innerHTML = "Profitability: "+obj[3]+"%";
+                			break;    
+                		case "DAILYSTATS":
+                			obj.shift();
+                			values.push(obj[0].split(" ")[0]);
+                			values.push(obj[0].split(" ")[1]);
+                			values.push(obj[1].split(" ")[0]);
+                			values.push(obj[1].split(" ")[1]);
+                			values.push(obj[2].split(" ")[0]);
+                			values.push(obj[2].split(" ")[1]);
+                			values.push(obj[3].split(" ")[0]);
+                			values.push(obj[3].split(" ")[1]);
+                			values.push(obj[4]);
+                			makeDailyChart(values);
+                			document.getElementById("dayprof").innerHTML = "Total Profitability: "+obj[5]+"%<br>"+
+                			"BlackJack Profitability: "+obj[6]+"%<br>"+
+                			"Roulette Profitability: "+obj[7]+"%<br>"+
+                			"Slots Profitability: "+obj[8]+"%<br>"
+                			;
+                			break;   
+                		case "PLAYERSTATS":  
+                			obj.shift();
+                			document.getElementById("anag").innerHTML= document.getElementById("playerSelect").options[document.getElementById("playerSelect").selectedIndex].text + " " + document.getElementById("playerSelect").options[document.getElementById("playerSelect").selectedIndex].text + "@gmail.com";              			
+                			values.push(obj[1].split(" ")[0]);
+                			values.push(obj[1].split(" ")[1]);
+                			values.push(obj[1].split(" ")[2]);
+                			makePlayerChart(values);
+                			break;   
+                		case "TOTALSTATS":  
+                			obj.shift();
+                			values.push(obj[0].split(" ")[0]);
+                			values.push(obj[0].split(" ")[1]);
+                			values.push(obj[1].split(" ")[0]);
+                			values.push(obj[1].split(" ")[1]);
+                			values.push(obj[2].split(" ")[0]);
+                			values.push(obj[2].split(" ")[1]);
+                			values.push(obj[3].split(" ")[0]);
+                			values.push(obj[3].split(" ")[1]);
+                			values.push(obj[4]);
+                			makeTotalChart(values);
+                			document.getElementById("totalprof").innerHTML = "Total Profitability: "+obj[5]+"%<br>"+
+                			"BlackJack Profitability: "+obj[6]+"%<br>"+
+                			"Roulette Profitability: "+obj[7]+"%<br>"+
+                			"Slots Profitability: "+obj[8]+"%<br>"
+                			;
+                			break;    
+                		case "HISTORYSTATS": obj.shift();
+                		for(i = 0; i<10; i++){
+                			values.push(obj[i].split(" ")[0]); //loss
+                			values.push(obj[i].split(" ")[1]); //gain
+                			values.push(obj[i].split(" ")[2]); //sessions
+                		}
+                		for(i = 10; i<20; i++){
+                			values.push(obj[i]);
+                		}
+                			makeHistoryChart(values);               		
+                			break; 
+                		case "ALLPLAYERS": 
+	                		obj.shift();
+	                		document.getElementById("playerSelect").innerHTML = "";				
+							var psel = document.getElementById("playerSelect");
+							for(i = 0; i < obj.length; i++){
+							var option = document.createElement("option");
+							option.text = obj[i].split(" ")[0];
+							psel.add(option);
+							}
+							break;          
+                	}
+                };
+ 				
+                
+                
+            }
+           
+            /**
+             * Sends the value of the text input to the server
+             */
+            function send(action){
+                //var text = document.getElementById("messageinput").value +";"+document.getElementById("roomID").value;
+                var obj = new Object();
+                obj.action = "STATREQ";
+   				switch(action){
+   					case "gamestats": obj.query = "GAMESTATS";
+   									var sel = document.getElementById("gameSelect");  //MUST BE NON NULL
+   									obj.gameType = sel.options[sel.selectedIndex].text;
+   									break;
+   					case "playerstats":  obj.query = "PLAYERSTATS";
+   									  var sel = document.getElementById("playerSelect");
+   									  obj.player = sel.options[sel.selectedIndex].text;
+										break;
+   					case "dailystats":obj.query = "DAILYSTATS"; break;
+   									
+   					case "totalstats": obj.query = "TOTALSTATS";
+   									 break;
+   					case "history": obj.query = "HISTORYSTATS";  									
+									  break;
+   											 
+   				}
+   				//obj.roomID  = document.getElementById("roomID").value;
+   				var text= JSON.stringify(obj);
+                webSocket.send(text);
+            }
+           
+            function closeSocket(){
+                webSocket.close();
+            }
+ 
+            function writeResponse(text){
+                messages.innerHTML += "<br/>" + text;
+            }
+           
+        </script>
+       
+    </body>
+</html>

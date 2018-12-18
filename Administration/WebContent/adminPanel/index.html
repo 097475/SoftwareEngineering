@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>Admin Panel</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body onload="openSocket();">
+
+<div><button  onclick="window.location.href='..'" class="button-secondary pure-button">Back</button> <br></div>
+	<div id="playerPane">
+		<select multiple="multiple" size = "10" class="select" id="playerSelect" disabled>
+		</select>
+		<button type="button" id="ban" class="button-secondary pure-button" onclick="openForm(this.id)">Ban Player</button>
+		<button type="button" id="edit" class="button-secondary pure-button" onclick="openForm(this.id)">Edit Player</button>
+		<button type="button" id="ssc" class="button-secondary pure-button" onclick="openForm(this.id)">Set Server Capacity</button>
+		
+<div id="banForm">
+  <form>
+ 	<select id="playerBanSelect"></select>   <br>   
+    <input type="number" placeholder="Ban period in seconds" min="0" value="0" id="banvalue" required>
+    <button type="button" name="closeBan" class="button-success pure-button" onclick="send(this.name)" >OK</button>
+    <button type="button" name="closeBan" class="button-error pure-button" onclick="closeForm(this.name)" >Close</button>
+  </form>  
+</div>
+
+<div id="editForm">
+  <form>
+  <select id="playerEditSelect" onchange="send(this.id)"></select>   <br>
+    <input type="text" placeholder="Username" id="userNameValue"> <br>
+    <input type="text" placeholder="Email" id="emailValue"> <br>
+    <button type="button" name="closeEdit" class="button-success pure-button" onclick="send(this.name)" >OK</button>
+    <button type="button" name="closeEdit" class="button-error pure-button" onclick="closeForm(this.name)" >Close</button>
+  </form>  
+</div>
+
+<div id="sscForm">
+  <form>   
+    <input type="number" placeholder="Max number of players" min="1" value="1" id="sscvalue" required>
+    <button type="button" name="closeSsc" class="button-success pure-button" onclick="send(this.name)" >OK</button>
+    <button type="button" name="closeSsc" class="button-error pure-button" onclick="closeForm(this.name)" >Close</button>
+  </form>  
+</div>
+
+</div>
+
+
+<div id="gamePane">
+		<select multiple="multiple" size = "10" class="select" id="gameSelect">
+		</select>
+		<button type="button" id="closeGame" class="button-success pure-button" onclick ="send(this.id)" >Close Game</button>
+		<button type="button" id="smb" class="button-secondary pure-button" onclick="openForm(this.id)">Set Minimum Bet</button>
+		
+	<div id="smbForm">
+  	<form>   
+    	<select id="gameBetSelect">
+			<option value="BLACKJACK">Blackjack</option>
+			<option value="ROULETTE">Roulette</option>
+			<option value="SLOTS">Slots</option>
+		</select>
+	<input type="number" placeholder="Set minimum bet" min="1" value="1" id="smbvalue" required>
+    <button type="button" name="closeBet" class="button-success pure-button" onclick="send(this.name)" >OK</button>
+    <button type="button" name="closeBet" class="button-error pure-button" onclick="closeForm(this.name)" >Close</button>
+  	</form>  
+	</div>
+</div>
+
+<!-- Server responses get written here -->
+	<div id="messages"></div>
+
+	<!-- Script to utilise the WebSocket -->
+	<script type="text/javascript">
+                       
+            var webSocket;
+            var messages = document.getElementById("messages");
+            
+            function getSelectValues(select) {
+            	  var result = [];
+            	  var options = select && select.options;
+            	  var opt;
+
+            	  for (var i=0, iLen=options.length; i<iLen; i++) {
+            	    opt = options[i];
+
+            	    if (opt.selected) {
+            	      result.push(opt.value || opt.text);
+            	    }
+            	  }
+            	  return result;
+            	}
+           
+           
+            function openSocket(){
+                // Ensures only one connection is open at a time
+                if(webSocket !== undefined && webSocket.readyState !== WebSocket.CLOSED){
+                   writeResponse("WebSocket is already opened.");
+                    return;
+                }
+
+                // Create a new instance of the websocket
+                webSocket = new WebSocket("ws://localhost:8080/Administration/adm/adpanel");
+                 
+                /**
+                 * Binds functions to the listeners for the websocket.
+                 */
+ 
+                webSocket.onmessage = function(event){
+                	var obj = JSON.parse(event.data);
+                	var i;
+                	switch(obj[0]){
+                		case "PLAYERS": document.getElementById("playerSelect").innerHTML = "";              						
+                						obj.shift();
+            							var sel = document.getElementById("playerSelect")          							
+                						for(i = 0; i < obj.length; i++){
+                							var option = document.createElement("option");
+                							option.text = obj[i].replace(" ","\xa0\xa0\xa0\xa0");
+                							sel.add(option);
+                						} break;
+                		case "ALLPLAYERS":  document.getElementById("playerEditSelect").innerHTML = "";
+                							document.getElementById("playerBanSelect").innerHTML = "";
+                							obj.shift();
+                							var esel = document.getElementById("playerEditSelect")
+                							var bsel = document.getElementById("playerBanSelect")
+                							for(i = 0; i < obj.length; i++){
+                							var option = document.createElement("option");
+                							option.text = obj[i].split(" ")[0];
+                							esel.add(option);
+                							var option = document.createElement("option");
+                							option.text = obj[i].split(" ")[0];
+                							bsel.add(option);
+                							}
+                							document.getElementById("userNameValue").value = obj[0].split(" ")[0];
+                							document.getElementById("emailValue").value = obj[0].split(" ")[1];
+                							break;                						
+                		case "GAMES": document.getElementById("gameSelect").innerHTML = "";
+                					  obj.shift();
+              						for(i = 0; i < obj.length; i++){
+            							var sel = document.getElementById("gameSelect")
+            							var option = document.createElement("option");
+            							option.text = obj[i];
+            							sel.add(option);
+            						} break;
+                		case "PLAYERINFO": obj.shift();
+                							document.getElementById("userNameValue").value = obj[0];
+                							document.getElementById("emailValue").value = obj[1];
+                							break;
+                	}
+                };
+ 
+            }
+           
+            /**
+             * Sends the value of the text input to the server
+             */
+            function send(action){
+                //var text = document.getElementById("messageinput").value +";"+document.getElementById("roomID").value;
+                var obj = new Object();
+   				switch(action){
+   					case "closeBan": obj.action = "BAN";
+   									var sel = document.getElementById("playerBanSelect");  //MUST BE NON NULL
+   									obj.player = sel.options[sel.selectedIndex].text;
+   									obj.data = document.getElementById("banvalue").value; break;
+   					case "closeEdit": obj.action = "EDIT"; 
+   									  var sel = document.getElementById("playerEditSelect");
+   									  obj.player = sel.options[sel.selectedIndex].text;
+   									  obj.eusername = document.getElementById("userNameValue").value;
+   									  obj.eemail = document.getElementById("emailValue").value;
+										break;
+   					case "closeSsc": obj.action = "SSC";
+   									obj.data = document.getElementById("sscvalue").value; break;
+   					case "closeBet": obj.action = "SMB";
+   									var sel = document.getElementById("gameBetSelect");
+   									obj.gameType = sel.options[sel.selectedIndex].text;
+   									obj.data = document.getElementById("smbvalue").value; break;
+   					case "closeGame": obj.action = "CLOSE";
+   									  var sel = document.getElementById("gameSelect");
+   									  var values = getSelectValues(sel);
+   									  for(i = 0; i < values.length; i++){
+   										  values[i] = values[i].split(" ")[0];
+   									  }
+									  obj.gameID = values;
+									  //alert(JSON.stringify(obj));
+									  break;
+   					case "playerEditSelect": obj.action ="PLAYERINFO";
+   											 var sel = document.getElementById("playerEditSelect");
+						  					 obj.player = sel.options[sel.selectedIndex].text;
+						  					 break;
+   											 
+   				}
+   				//obj.roomID  = document.getElementById("roomID").value;
+   				var text= JSON.stringify(obj);
+                webSocket.send(text);
+            }
+           
+            function closeSocket(){
+                webSocket.close();
+            }
+ 
+            function writeResponse(text){
+                messages.innerHTML += "<br/>" + text;
+            }
+           
+		function openForm(id) {
+			switch (id) {
+			case "ban":
+				document.getElementById("banForm").style.display = "block";
+				closeForm("closeEdit");
+				closeForm("closeSsc");
+				break;
+			case "edit":
+				document.getElementById("editForm").style.display = "block";
+				closeForm("closeBan");
+				closeForm("closeSsc");
+				break;
+			case "ssc":
+				document.getElementById("sscForm").style.display = "block";
+				closeForm("closeBan");
+				closeForm("closeEdit");
+				break;
+			case "smb":
+				document.getElementById("smbForm").style.display = "block";
+				break;
+			}
+			
+		}
+
+		function closeForm(id) {
+			switch (id) {
+			case "closeBan":
+				document.getElementById("banForm").style.display = "none";
+				break;
+			case "closeEdit":
+				document.getElementById("editForm").style.display = "none";
+				break;
+			case "closeSsc":
+				document.getElementById("sscForm").style.display = "none";
+				break;
+			case "closeBet":
+				document.getElementById("smbForm").style.display = "none";
+				break;
+			default:
+				break;
+			}
+						
+		}
+	</script>
+
+	
+</body>
+</html>
