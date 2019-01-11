@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Login</title>
+<link rel="stylesheet" type="text/css" href="loginstyle.css">
+</head>
+<body onload="getRandomName()">
+	<div>
+	<form>
+		Enter your username <br>
+    	<input type="text" id="username" size="30"/> <br>
+        <button type="button" onclick="save()" >Connect</button>
+    </form>
+	</div>
+	
+	<script>
+	function save(){
+		sessionStorage.username = document.getElementById("username").value;
+		window.open("chat.html", "_self");
+	}
+	function getRandomName(){
+		document.getElementById("username").defaultValue="user" + (Math.floor(Math.random() * 99)+1);
+	}
+	</script>
+</body>
+</html>

@@ -70,14 +70,6 @@ public class GameManagementPuppet implements IGameManagement {
 							query.add(new String[] {"50"}); //game sessions
 						   //profitability?
 						   break;
-		case "playerstats": 
-							min = 0;
-							max = 1000;
-							income = min + random.nextFloat() * (max - min);
-							expenditure = min + random.nextFloat() * (max - min);	
-							query.add(new String[] {"player"+random.nextInt(50),"player"+random.nextInt(50)+"@gmail.com"}); //anagraphic
-							query.add(new String[] {formatter.format(expenditure),formatter.format(income),new Integer(random.nextInt(1000)).toString()}); //data loss gain balance
-							break;
 		case "history":		min = 0;
 							max = 100;			
 							for(int i = 0; i<10;i++) {

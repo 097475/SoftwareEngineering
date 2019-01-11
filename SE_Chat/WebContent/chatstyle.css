@@ -1,0 +1,10 @@
+@charset "ISO-8859-1";
+
+#wrapper {
+	width:100%;
+    float: left;
+}
+
+#messages{
+	width:100%;
+}

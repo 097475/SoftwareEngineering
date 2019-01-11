@@ -117,7 +117,7 @@ public class Server {
     	List<String[]> ret = null;
 		switch(type) {
 		case "GAMESTATS": ret = IGM.query("gamestats"); ret.add(new String[] {Float.toString(computeProfitability(Float.parseFloat(ret.get(0)[0]),Float.parseFloat(ret.get(0)[1])))}); break;
-		case "PLAYERSTATS": ret = IGM.query("playerstats"); break;
+		case "PLAYERSTATS": ret = IUM.getPlayerStatistics("playerstats"); break;
 		case "DAILYSTATS": ret = IGM.query("dailystats"); 
 		ret.add(new String[] {Float.toString(computeProfitability(Float.parseFloat(ret.get(0)[0]),Float.parseFloat(ret.get(0)[1])))});
 		ret.add(new String[] {Float.toString(computeProfitability(Float.parseFloat(ret.get(1)[0]),Float.parseFloat(ret.get(1)[1])))});

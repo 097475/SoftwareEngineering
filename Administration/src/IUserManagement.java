@@ -7,4 +7,5 @@ public interface IUserManagement {
 	public void banPlayer(String username, long amount);
 	public void editPlayer(String username, Map<String,String> changes);
 	public void setCapacity(int cap);
+	public List<String[]> getPlayerStatistics(String SQLquery);
 }

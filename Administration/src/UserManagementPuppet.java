@@ -1,6 +1,8 @@
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 
@@ -70,6 +72,25 @@ public class UserManagementPuppet implements IUserManagement {
 	public void setCapacity(int cap) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public List<String[]> getPlayerStatistics(String SQLquery) {
+		// TODO Auto-generated method stub
+		Random random = new Random();
+		int min,max;
+		float income,expenditure;
+		List<String[]> query = new ArrayList<>();
+		NumberFormat formatter = NumberFormat.getNumberInstance(Locale.ROOT);
+		formatter.setMinimumFractionDigits(2);
+		formatter.setMaximumFractionDigits(2);
+		min = 0;
+		max = 1000;
+		income = min + random.nextFloat() * (max - min);
+		expenditure = min + random.nextFloat() * (max - min);	
+		query.add(new String[] {"player"+random.nextInt(50),"player"+random.nextInt(50)+"@gmail.com"}); //anagraphic
+		query.add(new String[] {formatter.format(expenditure),formatter.format(income),new Integer(random.nextInt(1000)).toString()}); //data loss gain balance
+		return query;
 	}
 
 }
